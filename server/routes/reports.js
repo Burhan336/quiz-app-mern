@@ -7,12 +7,12 @@ router.post("/add-report", authMiddleware, async (req, res) => {
   try {
     const newReport = new Report(req.body);
     await newReport.save();
-    return res.json(200, {
+    return res.status(200).json({
       message: "Report added succesfully",
       success: true,
     });
   } catch (error) {
-    return res.json(500, {
+    return res.status(500).json({
       error: error.message,
       success: false,
     });
@@ -23,13 +23,13 @@ router.post("/get-all-reports", authMiddleware, async (req, res) => {
   try {
     const reports = await Report.find({}).populate("exam").populate("user");
 
-    return res.json(200, {
+    return res.status(200).json({
       message: "Report fetched succesfully",
       success: true,
       data: reports,
     });
   } catch (error) {
-    return res.json(500, {
+    return res.status(500).json({
       error: error.message,
       success: false,
     });
@@ -41,13 +41,13 @@ router.post("/get-all-reports-by-user", authMiddleware, async (req, res) => {
     const reports = await Report.find({ user: req.body.userId })
       .populate("exam")
       .populate("user");
-    return res.json(200, {
+    return res.status(200).json({
       message: "Report fetched succesfully",
       success: true,
       data: reports,
     });
   } catch (error) {
-    return res.json(500, {
+    return res.status(500).json({
       error: error.message,
       success: false,
     });
