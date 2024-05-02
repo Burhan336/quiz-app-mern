@@ -24,6 +24,6 @@ router.post(
   QuestionController.deleteQuestion
 );
 
-router.post("/upload-csv", authMiddleware, QuestionController.uploadCSV);
+// router.post("/upload-csv", authMiddleware, QuestionController.uploadCSV);
 
 module.exports = router;

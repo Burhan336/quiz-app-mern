@@ -4,10 +4,27 @@ const User = require("../model/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const authMiddleware = require("../middlewares/authMiddleware");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "burhansq0@gmail.com",
+    pass: "hcpuejyzfeqrigiv",
+  },
+});
+
+const emailOptions = {
+  from: "burhansq0@gmail.com",
+  to: email,
+  subject: "New Quiz Created",
+  text: `Dear ${name},\n\nYour account has been created!\n\nBest regards,\nAdmin`,
+};
 
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({
@@ -21,6 +38,7 @@ router.post("/register", async (req, res) => {
       password,
     });
     await newUser.save();
+    await transporter.sendMail(emailOptions);
     return res.status(200).json({
       newUser,
       message: "Account created successfully! Login to continue",
