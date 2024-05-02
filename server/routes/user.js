@@ -14,17 +14,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const emailOptions = {
-  from: "burhansq0@gmail.com",
-  to: email,
-  subject: "New Quiz Created",
-  text: `Dear ${name},\n\nYour account has been created!\n\nBest regards,\nAdmin`,
-};
-
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
+    const emailOptions = {
+      from: "burhansq0@gmail.com",
+      to: email,
+      subject: "New Quiz Created",
+      text: `Dear ${name},\n\nYour account has been created!\n\nBest regards,\nAdmin`,
+    };
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({
