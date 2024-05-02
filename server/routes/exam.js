@@ -3,225 +3,30 @@ const router = express.Router();
 const Exam = require("../model/exam");
 const Question = require("../model/question");
 const authMiddleware = require("../middlewares/authMiddleware");
-const nodemailer = require("nodemailer");
 const User = require("../model/user");
+const ExamController = require("../controllers/ExamController");
+const QuestionController = require("../controllers/QuestionController");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  secure: true,
-  port: 465,
-  auth: {
-    user: "burhansq0@gmail.com",
-    pass: "hcpuejyzfeqrigiv",
-  },
-});
-router.post("/add", authMiddleware, async (req, res) => {
-  try {
-    req.body.questions = [];
-    const newExam = new Exam(req.body);
-    await newExam.save();
+//Exams
+router.post("/add", authMiddleware, ExamController.addExam);
+router.get("/get-all-exams", authMiddleware, ExamController.getAllExams);
+router.get("/get-exam-by-id/:id", authMiddleware, ExamController.getExamById);
+router.post("/edit/:id", authMiddleware, ExamController.editExam);
+router.delete("/delete/:id", authMiddleware, ExamController.deleteExam);
 
-    // Fetch all users
-    const users = await User.find({});
-    if (!users || users.length === 0) {
-      return res.status(404).json({
-        error: "No users found",
-        success: false,
-      });
-    }
+//Questions
+router.post("/add-question", authMiddleware, QuestionController.addQuestion);
 
-    users.forEach(async (user) => {
-      const emailOptions = {
-        from: "burhansq0@gmail.com",
-        to: user.email,
-        subject: "New Quiz Created",
-        text: `Dear ${user.name},\n\nA new quiz has been created. Check it out now!\n\nBest regards,\nAdmin`,
-      };
+router.post(
+  "/edit-question-in-exam/:id",
+  authMiddleware,
+  QuestionController.editQuestion
+);
 
-      await transporter.sendMail(emailOptions);
-    });
-
-    return res.status(200).json({
-      message: "Exam added succesfully",
-      data: newExam,
-      success: true,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error",
-      success: false,
-      error: error.message,
-    });
-  }
-});
-router.get("/get-all-exams", authMiddleware, async (req, res) => {
-  try {
-    const exams = await Exam.find({});
-    if (!exams) {
-      return res.status(404).json({
-        error: "No exams found",
-        success: false,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      data: exams,
-      message: "Exams fetched successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error",
-      success: false,
-      error: error.message,
-    });
-  }
-});
-router.get("/get-exam-by-id/:id", authMiddleware, async (req, res) => {
-  try {
-    const exam = await Exam.findById(req.params.id).populate("questions");
-    if (!exam) {
-      return res.status(404).json({
-        error: "Exam not found",
-        success: false,
-      });
-    }
-    return res.status(200).json({
-      success: true,
-      data: exam,
-      message: "Exam fetched successfully",
-    });
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal server error",
-      success: false,
-      error: error.message,
-    });
-  }
-});
-
-router.post("/edit/:id", authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const exam = await Exam.findByIdAndUpdate(id, req.body);
-    if (!exam) {
-      return res.status(404).json({
-        success: false,
-        error: "Exam not found",
-      });
-    }
-    return res.status(200).json({
-      message: "Exam edited successfully",
-      success: true,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      success: false,
-    });
-  }
-});
-
-router.delete("/delete/:id", authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const exam = await Exam.findById(id);
-    if (!exam) {
-      return res.status(404).json({
-        success: false,
-        error: "Exam not found",
-      });
-    }
-    exam.remove();
-    return res.status(200).json({
-      message: "Exam deleted successfully",
-      success: true,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      success: false,
-    });
-  }
-});
-
-router.post("/add-question", authMiddleware, async (req, res) => {
-  try {
-    const newQuestion = new Question(req.body);
-    await newQuestion.save();
-    const exam = await Exam.findById(req.body.exam);
-    if (!exam) {
-      return res.status(404).json({
-        error: "Exam not found",
-        success: false,
-      });
-    }
-    exam.questions.push(newQuestion._id);
-    await exam.save();
-    return res.status(200).json({
-      message: "Question added successfully",
-      success: true,
-      data: newQuestion,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      success: false,
-    });
-  }
-});
-
-router.post("/edit-question-in-exam/:id", authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const question = await Question.findByIdAndUpdate(id, req.body);
-    if (!question) {
-      return res.status(404).json({
-        error: "Question not found",
-        success: false,
-      });
-    }
-    return res.status(200).json({
-      message: "Question edited successfully",
-      success: true,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      success: false,
-    });
-  }
-});
-
-router.post("/delete-question/:id", authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const exam = await Exam.findById(req.body.examId);
-    if (!exam) {
-      return res.status(404).json({
-        error: "Exam not found",
-        success: false,
-      });
-    }
-    const question = await Question.findByIdAndDelete(id);
-    if (!question) {
-      return res.status(404).json({
-        error: "Question not found",
-        success: false,
-      });
-    }
-
-    exam.questions = exam.questions.filter((question) => question._id !== id);
-    await exam.save();
-    return res.status(200).json({
-      message: "Question deleted successfully",
-      success: true,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      error: error.message,
-      success: false,
-    });
-  }
-});
+router.post(
+  "/delete-question/:id",
+  authMiddleware,
+  QuestionController.deleteQuestion
+);
 
 module.exports = router;
