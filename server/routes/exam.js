@@ -1,9 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Exam = require("../model/exam");
-const Question = require("../model/question");
 const authMiddleware = require("../middlewares/authMiddleware");
-const User = require("../model/user");
 const ExamController = require("../controllers/ExamController");
 const QuestionController = require("../controllers/QuestionController");
 
@@ -16,17 +13,17 @@ router.delete("/delete/:id", authMiddleware, ExamController.deleteExam);
 
 //Questions
 router.post("/add-question", authMiddleware, QuestionController.addQuestion);
-
 router.post(
   "/edit-question-in-exam/:id",
   authMiddleware,
   QuestionController.editQuestion
 );
-
 router.post(
   "/delete-question/:id",
   authMiddleware,
   QuestionController.deleteQuestion
 );
+
+router.post("/upload-csv", authMiddleware, QuestionController.uploadCSV);
 
 module.exports = router;

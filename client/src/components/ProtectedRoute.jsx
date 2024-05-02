@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../redux/userSlice";
 import { useNavigate } from "react-router-dom";
 import { hideLoading, showLoading } from "../redux/loaderSlice";
+import { logout } from "../redux/userSlice";
 
 const ProtectedRoute = ({ children }) => {
   const { user } = useSelector((state) => state.user);
@@ -12,6 +13,12 @@ const ProtectedRoute = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Remove token from localStorage
+    dispatch(logout()); // Dispatch the logout action to clear user and token in Redux state
+    navigate("/login"); // Navigate to the login page
+  };
   const userMenu = [
     {
       title: "Home",
@@ -33,12 +40,9 @@ const ProtectedRoute = ({ children }) => {
     },
     {
       title: "Logout",
-      path: ["logout"],
-      icon: <span class="material-symbols-outlined">logout</span>,
-      onClick: () => {
-        localStorage.removeItem("token");
-        navigate("/login");
-      },
+      paths: ["/logout"], // Fixed typo in "path" to "paths"
+      icon: <span className="material-symbols-outlined">logout</span>,
+      onClick: handleLogout, // Use the handleLogout function
     },
   ];
   const adminMenu = [
@@ -68,12 +72,9 @@ const ProtectedRoute = ({ children }) => {
     },
     {
       title: "Logout",
-      path: ["logout"],
-      icon: <span class="material-symbols-outlined">logout</span>,
-      onClick: () => {
-        localStorage.removeItem("token");
-        navigate("/login");
-      },
+      paths: ["/logout"], // Fixed typo in "path" to "paths"
+      icon: <span className="material-symbols-outlined">logout</span>,
+      onClick: handleLogout, // Use the handleLogout function
     },
   ];
   useEffect(() => {

@@ -80,5 +80,38 @@ const deleteQuestion = async (req, res) => {
     });
   }
 };
+const uploadCSV = async (req, res) => {
+  try {
+    const file = req.files.csvFile;
 
-module.exports = { addQuestion, editQuestion, deleteQuestion };
+    const parser = fs
+      .createReadStream(file.path)
+      .pipe(parse({ delimiter: "," }));
+
+    let questions = [];
+    parser.on("data", (row) => {
+      // Assuming CSV structure: question,correctOption,option1,option2,...
+      const [name, correctOption, ...options] = row;
+      questions.push({
+        name,
+        correctOption,
+        options: options.reduce((acc, option, index) => {
+          acc[`option${index + 1}`] = option;
+          return acc;
+        }, {}),
+      });
+    });
+
+    parser.on("end", async () => {
+      const createdQuestions = await Question.insertMany(questions);
+      res.status(200).json({
+        message: "CSV data uploaded successfully",
+        questions: createdQuestions,
+      });
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+module.exports = { addQuestion, editQuestion, deleteQuestion, uploadCSV };
